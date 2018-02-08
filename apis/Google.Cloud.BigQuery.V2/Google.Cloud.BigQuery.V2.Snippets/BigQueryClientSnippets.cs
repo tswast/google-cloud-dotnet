@@ -304,6 +304,42 @@ namespace Google.Cloud.BigQuery.V2.Snippets
         // End see-also
 
         [Fact]
+        public void CreateTableCustomerManagedEncryptionKey()
+        {
+            string projectId = _fixture.ProjectId;
+            string datasetId = _fixture.GameDatasetId;
+            string tableId = _fixture.GenerateTableId();
+
+            // [START bigquery_create_table_cmek]
+            // Snippet: CreateTable(string,string,*,*)
+            BigQueryClient client = BigQueryClient.Create(projectId);
+            TableSchema schema = new TableSchemaBuilder
+            {
+                { "from_player", BigQueryDbType.String },
+                { "to_player", BigQueryDbType.String },
+                { "message", BigQueryDbType.String }
+            }.Build();
+            var encryptionConfiguration = new EncryptionConfiguration {
+                KmsKeyName = "projects/cloud-samples-tests/locations/global/keyRings/test/cryptoKeys/test"
+            };
+            CreateTableOptions options = new CreateTableOptions { EncryptionConfiguration = encryptionConfiguration };
+            BigQueryTable table = client.CreateTable(datasetId, tableId, schema, options);
+            // Now populate the table with data...
+            // End snippet
+            // [END bigquery_create_table_cmek]
+
+            PagedEnumerable<TableList, BigQueryTable> tables = client.ListTables(datasetId);
+            List<string> ids = tables.Select(ds => ds.Reference.TableId).ToList();
+            Assert.Contains(tableId, ids);
+        }
+
+        // See-also: CreateTable(string, string, *, *)
+        // Member: CreateTable(TableReference, *, *)
+        // Member: CreateTable(string, string, string, *, *)
+        // See [CreateTable](ref) for an example using an alternative overload.
+        // End see-also
+
+        [Fact]
         public void GetOrCreateTable()
         {
             string projectId = _fixture.ProjectId;
